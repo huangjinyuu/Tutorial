@@ -65,32 +65,83 @@ base                  *  /root/.conda
 llamaindex               /root/.conda/envs/llamaindex
 ```
 
-运行 `conda` 命令，激活 `llamaindex` 然后安装相关基础依赖
-**python** 虚拟环境:
+运行 `conda` 命令，激活 `llamaindex` ：
 
 ```bash
 conda activate llamaindex
-conda install pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=11.7 -c pytorch -c nvidia
-```
-
-**安装 python 依赖包**
-
-```bash
-pip install einops==0.7.0 protobuf==5.26.1
 ```
 
 环境激活后，命令行左边会显示当前（也就是 `llamaindex` ）的环境名称，如下图所示:
 
 ![image](https://github.com/Shengshenlan/tutorial/assets/57640594/bcfedc90-0d9d-4679-b1e9-4709b05711f3)
 
-### 2.2 安装 Llamaindex
+然后**安装 python 相关基础依赖包**：
 
-安装 Llamaindex 和相关的包
+```bash
+pip install einops==0.7.0 protobuf==5.26.1
+```
+
+
+
+### 2.2 安装 Llamaindex 与 Pytorch
+
+安装 `Llamaindex` 和相关的包：
 
 ```bash
 conda activate llamaindex
 pip install llama-index==0.10.38 llama-index-llms-huggingface==0.2.0 "transformers[torch]==4.41.1" "huggingface_hub[inference]==0.23.1" huggingface_hub==0.23.1 sentence-transformers==2.7.0 sentencepiece==0.2.0
 ```
+
+安装 `LlamaIndex` 词嵌入向量依赖：
+
+```bash
+conda activate llamaindex
+pip install llama-index-embeddings-huggingface==0.2.0 llama-index-embeddings-instructor==0.1.3
+```
+
+```bash
+在这一步请确定llama-index-embeddings-huggingface安装成功
+如果存在not found错误，请重新安装
+# pip install llama-index-embeddings-huggingface==0.2.0
+确保 huggingface_hub==0.23.1
+```
+
+最后再安装 Pytorch：
+```bash
+conda install pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=11.7 -c pytorch -c nvidia
+```
+
+安装完成后，验证 Pytorch 是否正确安装并使用了指定的 CUDA 版本：
+```
+import torch
+print(torch.__version__)        # 应输出类似 '2.0.1'
+print(torch.version.cuda)       # 应输出 '11.7'
+print(torch.cuda.is_available())# 应输出 True
+```
+
+<details>
+    <summary>关于 LlamaIndex 与 Pytorch 安装顺序的说明</summary>
+    
+---
+
+关于本次实验的运行环境，我们建议的是如上 先安装 Llamaindex ，再安装 Pytorch。
+
+“先安装 Pytorch 再安装 Llamaindex”存在的问题是：匹配CUDA 11.7的torch安装在前，但是其后安装 LLamaIndex 相关的指令会稳定触发torch的升级到最新版本，而新版本的PyTorch (2.5.1) 默认使用CUDA 12.4，导致 Pytorch 版本与 CUDA版本不匹配。
+
+这样，当进行到模型推理的步骤时，就会报错：
+```
+RuntimeError: CUDA error: CUBLAS_STATUS_NOT_INITIALIZED when calling cublasCreate(handle)
+```
+
+这时候就需要再次**重新**安装正确的torch：
+```
+conda install pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=11.7 -c pytorch -c nvidia
+```
+
+导致操作步骤的繁杂与冗余。
+
+---
+</details>
 
 ### 2.3 下载 Sentence Transformer 模型
 
@@ -185,31 +236,11 @@ cd ~/llamaindex_demo/
 python llamaindex_internlm.py
 ```
 
-**如果报错`CUDA error:` 请检查torch版本是否为2.0.1，因为当安装某些依赖时，可能会自动升级torch版本，那么请重新降低版本至2.0.1**
-```bash
-conda install pytorch==2.1.2 -c pytorch -c nvidia
-```
-
-
 结果为：
 ![image](https://github.com/Shengshenlan/tutorial/assets/57640594/ac3f481d-cc5b-44be-b281-2cab7289f027)
 回答的效果并不好，并不是我们想要的 xtuner。
 
 ## 4. LlamaIndex RAG
-
-安装 `LlamaIndex` 词嵌入向量依赖
-
-```bash
-conda activate llamaindex
-pip install llama-index-embeddings-huggingface==0.2.0 llama-index-embeddings-instructor==0.1.3
-```
-
-```bash
-在这一步请确定llama-index-embeddings-huggingface安装成功
-如果存在not found错误，请重新安装
-# pip install llama-index-embeddings-huggingface==0.2.0
-确保 huggingface_hub==0.23.1
-```
 
 运行以下命令，获取知识库
 
